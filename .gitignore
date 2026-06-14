@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+dist/
+build/
+data/
+*.db
+*.sqlite
+*.sqlite3
+.cache/
+.parcel-cache/
+.vite/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.crt
+*.cert
+*secret*
+*secrets*
+*credential*
+*credentials*
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+
+# Logs and local tooling
+__pycache__/
+*.pyc
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
