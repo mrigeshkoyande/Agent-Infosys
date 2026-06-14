@@ -1,0 +1,12 @@
+{
+  "name": "skillbridge-codex-hackathon",
+  "version": "1.0.0",
+  "description": "SkillBridge Agent: a Codex hackathon prototype for turning displaced workers' experience into verified local job pathways.",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 5173",
+    "build": "node scripts/validate.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
