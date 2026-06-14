@@ -1,18 +1,543 @@
-# SkillBridge Agent - Complete Developer Handbook & Reference
+# 🌉 SkillBridge Agent
+> **Transform displaced worker experience into verified, local job pathways**
 
-Welcome to the **SkillBridge Agent** developer handbook. This guide provides a detailed breakdown of the codebase architecture, database models, backend API endpoints, AI scoring logic, frontend state management, and custom CSS styling system. It is designed to give you complete visibility into the project so that you can confidently design, style, and extend the frontend user interface.
+[![Node.js](https://img.shields.io/badge/Node.js-ES6+-brightgreen)](https://nodejs.org/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+A lightweight, **zero-dependency** workforce counseling application that helps translate workers' experience across manufacturing, retail, caregiving, food service, and logistics into actionable career pathways with verified training programs and wage data.
 
 ---
 
-## Table of Contents
-1. [System Architecture Overview](#system-architecture-overview)
-2. [Database Schema & Models](#database-schema--models)
-3. [Backend API Reference](#backend-api-reference)
-4. [Agent Mechanics & Recommendation Logic](#agent-mechanics--recommendation-logic)
-5. [Frontend Client Reference](#frontend-client-reference)
-6. [Styling & Layout System](#styling--layout-system)
-7. [Local Setup, Development, & Validation](#local-setup-development--validation)
-8. [Security & Deployment Rules](#security--deployment-rules)
+## 📋 Quick Links
+- [Quick Start (5 min)](#quick-start)
+- [Project Overview](#project-overview)
+- [Architecture](#architecture)
+- [File Structure](#file-structure)
+- [API Reference](#api-reference)
+- [Development Guide](#development-guide)
+- [Database Schema](#database-schema)
+- [Troubleshooting](#troubleshooting)
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js** 14+ (for frontend validation)
+- **Python** 3.8+ (for backend server)
+- **Git** (for version control)
+
+### Installation & Running (< 5 minutes)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/mrigeshkoyande/Agent-Infosys.git
+cd Agent-Infosys
+
+# 2. Install frontend dependencies (if needed)
+npm install
+
+# 3. Validate the build
+npm run build
+
+# 4. Start the backend server
+npm start
+```
+
+The application will be available at **http://localhost:5173**
+
+---
+
+## 📌 Project Overview
+
+**SkillBridge Agent** is a workforce counseling platform designed for:
+- **Counselors** to analyze worker profiles and recommend verified job pathways
+- **Workers** to understand which industries match their experience
+- **Organizations** to quickly translate skills into employment opportunities
+
+### Key Features
+✅ **Worker Profile Analysis** - Assess experience across 5 key industries  
+✅ **AI-Powered Recommendations** - Match skills to verified training programs  
+✅ **Real Wage Data** - Current market rates ($21-38/hr)  
+✅ **Case Management** - Save and track worker analyses  
+✅ **Zero Dependencies** - Runs on standard Python & JavaScript libraries  
+✅ **Secure Authentication** - JWT-based token system  
+✅ **Responsive UI** - Beautiful 3D animated interface with Tailwind CSS
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   FRONTEND (Vanilla JS)                      │
+│  index.html | main.js | styles.css | Three.js 3D Particles  │
+│                                                              │
+└─────────────────────────┬──────────────────────────────────┘
+                          │ HTTP JSON + Bearer Auth
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│        BACKEND (Python - ThreadingHTTPServer)               │
+│                                                              │
+│  server.py (Routes) → agent.py (Logic) → db.py (SQLite)    │
+│                    ↓                                         │
+│                 auth.py (JWT)                               │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│     DATABASE (SQLite: data/skillbridge.db)                   │
+│  users | cases | sessions | recommendations                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Technology Stack
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Frontend | Vanilla JavaScript + Tailwind CSS + Three.js | Zero overhead, fast, modern UI |
+| Backend | Python 3.8+ | Built-in libraries only, highly portable |
+| Server | ThreadingHTTPServer | Part of Python stdlib, no pip dependencies |
+| Database | SQLite | Lightweight, zero-config, perfect for SPA |
+| Auth | JWT + Bcrypt | Stateless, secure token-based auth |
+
+---
+
+## 📁 File Structure
+
+```
+Agent-Infosys/
+├── 📄 index.html              # Single entry point for the SPA
+├── 📄 package.json            # Node scripts and metadata
+├── 📄 README.md               # This file
+├── 📄 AGENTS.md               # Agent guidelines & constraints
+│
+├── 🔧 backend/                # Python backend server
+│   ├── server.py              # Main HTTP server & route handlers
+│   ├── agent.py               # Core recommendation engine
+│   ├── auth.py                # JWT token generation & validation
+│   ├── db.py                  # SQLite database operations
+│   └── __init__.py            # Package initialization
+│
+├── 🎨 src/                    # Frontend source code
+│   ├── main.js                # SPA logic, state management, UI rendering
+│   └── styles.css             # Custom CSS + Tailwind overrides
+│
+├── 📊 data/                   # Runtime data (SQLite database)
+│   └── skillbridge.db         # Created on first run
+│
+├── 🔨 scripts/
+│   └── validate.mjs           # Build validation script
+│
+└── .gitignore                 # Ignore node_modules, .env, data/
+```
+
+### Key Files Explained
+
+| File | Purpose | Size | Key Functions |
+|------|---------|------|----------------|
+| [server.py](backend/server.py) | HTTP request router | ~300 LOC | `do_GET()`, `do_POST()`, request handlers |
+| [agent.py](backend/agent.py) | Recommendation logic | ~200 LOC | `score_pathways()`, skill matching |
+| [auth.py](backend/auth.py) | JWT authentication | ~100 LOC | `login()`, `validate_token()` |
+| [db.py](backend/db.py) | Database CRUD | ~250 LOC | `init_db()`, `list_cases()`, `create_case()` |
+| [main.js](src/main.js) | Frontend SPA | ~1600 LOC | State management, UI rendering, API calls |
+| [styles.css](src/styles.css) | Custom styling | ~140 LOC | Dark mode, animations, responsive layout |
+
+---
+
+## 🔌 API Reference
+
+### Base URL
+```
+http://localhost:5173/api
+```
+
+### Authentication
+All endpoints except `/auth/login` and `/auth/register` require:
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### Endpoints
+
+#### 🔐 Authentication
+```
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/logout
+```
+
+**Login Example:**
+```bash
+curl -X POST http://localhost:5173/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"counselor@example.com","password":"secure123"}'
+```
+
+#### 👤 User Profile
+```
+GET /api/me                    # Get current logged-in user
+GET /api/profile               # Get user profile details
+PUT /api/profile               # Update user profile
+```
+
+#### 📋 Case Management
+```
+GET /api/cases                 # List all cases for current user
+GET /api/cases/:id             # Get single case details
+POST /api/cases                # Create new case
+PUT /api/cases/:id             # Update case
+DELETE /api/cases/:id          # Delete case
+```
+
+**Create Case Example:**
+```bash
+curl -X POST http://localhost:5173/api/cases \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "worker_name": "Maya Patel",
+    "selected_roles": ["manufacturing", "logistics"],
+    "urgency": "lost-job",
+    "notes": "Laid off, needs evening work"
+  }'
+```
+
+#### 🤖 AI Recommendations
+```
+POST /api/analyze              # Get AI recommendations for worker
+GET /api/pathways              # List all available job pathways
+```
+
+#### 💚 Health Check
+```
+GET /api/health                # Simple health check
+```
+
+**Response:**
+```json
+{"ok": true, "service": "skillbridge"}
+```
+
+---
+
+## 🧠 Agent Logic & Recommendation Engine
+
+The recommendation engine in [agent.py](backend/agent.py) works as follows:
+
+### Scoring Algorithm
+
+1. **Skill Matching** - Compare worker's selected roles against predefined role signals
+2. **Urgency Weighting** - Boost scores based on urgency level
+3. **Pathway Ranking** - Match skills to training programs
+4. **Barrier Assessment** - Identify blockers (schedule, cost, location)
+5. **Wage Analysis** - Show market rates for each pathway
+
+### Role Signals (Hard-coded Skills by Industry)
+
+```python
+manufacturing: ["Machine operation", "Quality control", "Maintenance", "Forklift", "Lean safety"]
+retail: ["Customer support", "Inventory", "Cash handling", "Conflict resolution", "Scheduling"]
+caregiving: ["Patient care", "Documentation", "Empathy", "Medication reminders", "Home safety"]
+food: ["Food safety", "Prep workflow", "Sanitation", "Supplier receiving", "Rush-hour coordination"]
+logistics: ["Route planning", "Warehouse systems", "Loading", "Dispatch", "OSHA awareness"]
+```
+
+### Urgency Multipliers
+
+```python
+"lost-job": 12x weight        # Highest priority
+"at-risk": 8x weight          # Medium priority
+"career-change": 4x weight    # Lower priority
+```
+
+### Sample Pathways
+
+| Pathway | Wage | Training | Best For |
+|---------|------|----------|----------|
+| Industrial Maintenance Technician | $27-38/hr | 8 weeks | Manufacturing + Logistics |
+| Supply Chain Coordinator | $24-34/hr | 6 weeks | Logistics + Retail |
+| Certified Medical Assistant | $21-29/hr | 10 weeks evening | Caregiving |
+| Food Safety Supervisor | $23-31/hr | 4 weeks | Food Service |
+
+---
+
+## 🎨 Frontend State Management
+
+The entire frontend state is stored in a single JavaScript object:
+
+```javascript
+const state = {
+  token: localStorage.getItem('skillbridge_token'),           // JWT token
+  user: JSON.parse(localStorage.getItem('skillbridge_user')), // User object
+  workerName: 'Maya Patel',                                   // Worker name
+  selected: ['manufacturing', 'logistics'],                   // Selected roles
+  urgency: 'lost-job',                                        // Urgency level
+  notes: 'Worker situation notes...',                         // Context notes
+  analysis: null,                                             // AI recommendations result
+  cases: [],                                                  // Loaded cases from server
+  loading: false,                                             // Loading state
+  error: '',                                                  // Error messages
+  view: 'landing',                                            // Current view
+  sidebarOpen: false,                                         // Mobile sidebar toggle
+};
+```
+
+### State Flow
+```
+User Action → Event Handler → API Call → State Update → Re-render UI
+```
+
+---
+
+## 💾 Database Schema
+
+### Initialize on First Run
+```bash
+python -c "from backend import db; db.init_db()"
+```
+
+### Tables
+
+#### `users` Table
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT DEFAULT 'counselor',
+    created_at TEXT NOT NULL
+);
+```
+
+#### `cases` Table
+```sql
+CREATE TABLE cases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    worker_name TEXT NOT NULL,
+    selected_roles TEXT NOT NULL,       -- JSON array
+    urgency TEXT NOT NULL,
+    notes TEXT,
+    analysis TEXT,                      -- JSON recommendations
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+#### `sessions` Table
+```sql
+CREATE TABLE sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    expires_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+```
+
+---
+
+## 🛠️ Development Guide
+
+### Local Development Setup
+
+**1. Clone and enter project:**
+```bash
+git clone https://github.com/mrigeshkoyande/Agent-Infosys.git
+cd Agent-Infosys
+```
+
+**2. Install dependencies:**
+```bash
+npm install
+```
+
+**3. Start backend server:**
+```bash
+npm start
+# Server runs at http://localhost:5173
+```
+
+**4. Open in browser:**
+- Navigate to `http://localhost:5173`
+- Log in with test credentials (or create account)
+
+### Making Changes
+
+#### Adding a New API Endpoint
+
+**In backend/server.py:**
+```python
+def do_POST(self):
+    parsed = urlparse(self.path)
+    if parsed.path == "/api/new-endpoint":
+        payload = read_json(self)
+        # Your logic here
+        return json_response(self, {"result": "success"})
+```
+
+#### Modifying Frontend UI
+
+**In src/main.js:**
+1. Update state object if needed
+2. Add/modify event handlers
+3. Update render function
+4. Test in browser DevTools
+
+#### Adding Database Table
+
+**In backend/db.py:**
+```python
+def init_db():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    # Add new table creation SQL
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS new_table (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ...
+        )
+    """)
+    conn.commit()
+    conn.close()
+```
+
+### Running Tests
+
+```bash
+npm run build   # Validates build
+```
+
+### Debugging
+
+**Backend (Python):**
+```python
+import json
+print(json.dumps(debug_data, indent=2))  # Pretty print JSON
+```
+
+**Frontend (JavaScript):**
+```javascript
+console.log('State:', state);            // Log current state
+console.log('Error:', error);            // Check errors
+```
+
+---
+
+## 🔒 Security Considerations
+
+✅ **JWT Tokens** - All API calls use Bearer token authentication  
+✅ **Password Hashing** - Bcrypt used for password storage  
+✅ **CORS** - Configure as needed for production  
+✅ **HTTPS** - Use HTTPS in production  
+✅ **.gitignore** - Never commit `.env`, `data/`, `node_modules/`
+
+---
+
+## 🚀 Deployment
+
+### Environment Variables
+Create a `.env` file (do NOT commit):
+```
+SKILLBRIDGE_DB=data/skillbridge.db
+SKILLBRIDGE_PORT=5173
+SKILLBRIDGE_SECRET=your-jwt-secret-key
+```
+
+### Production Deployment
+```bash
+# Build validation
+npm run build
+
+# Run with production settings
+PORT=8080 python -m backend.server
+```
+
+---
+
+## 🤝 Contributing
+
+1. **Create a branch** for your feature
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make changes** and test locally
+
+3. **Validate build**
+   ```bash
+   npm run build
+   ```
+
+4. **Commit with clear messages**
+   ```bash
+   git commit -m "feat: Add new feature description"
+   ```
+
+5. **Push and create a Pull Request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+---
+
+## 📚 Additional Resources
+
+- [Agent Guidelines](AGENTS.md) - Development constraints and best practices
+- [Python Documentation](https://docs.python.org/3/) - Python standard library
+- [Tailwind CSS](https://tailwindcss.com/) - CSS framework used
+- [Three.js](https://threejs.org/) - 3D graphics library
+
+---
+
+## ❓ Troubleshooting
+
+### "Port 5173 already in use"
+```bash
+# Kill process using port
+lsof -ti:5173 | xargs kill -9  # macOS/Linux
+netstat -ano | findstr :5173   # Windows (find PID)
+taskkill /PID <PID> /F         # Windows (kill process)
+```
+
+### "ModuleNotFoundError" when running backend
+```bash
+# Ensure you're using Python 3.8+
+python --version
+
+# Try running with full module path
+python -m backend.server
+```
+
+### "Database locked" errors
+```bash
+# Remove old database and restart
+rm data/skillbridge.db
+npm start
+```
+
+### Frontend not connecting to backend
+1. Verify backend is running: `curl http://localhost:5173/api/health`
+2. Check browser console for CORS errors
+3. Verify `Authorization` header is present in requests
+
+---
+
+## 📄 Table of Contents
+1. [Quick Start](#quick-start)
+2. [Project Overview](#project-overview)
+3. [Architecture](#architecture)
+4. [File Structure](#file-structure)
+5. [API Reference](#api-reference)
+6. [Agent Logic](#agent-logic--recommendation-engine)
+7. [Frontend State](#frontend-state-management)
+8. [Database Schema](#database-schema)
+9. [Development Guide](#development-guide)
+10. [Security](#security-considerations)
+11. [Deployment](#deployment)
+12. [Contributing](#contributing)
 
 ---
 
