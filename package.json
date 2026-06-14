@@ -5,8 +5,22 @@
   "type": "module",
   "scripts": {
     "start": "python -m backend.server",
-    "build": "node scripts/validate.mjs"
+    "start:dev": "DEBUG=true python -m backend.server",
+    "start:prod": "ENVIRONMENT=production python -m backend.server",
+    "build": "node scripts/validate.mjs",
+    "build:prod": "npm run build && npm start:prod",
+    "docker:build": "docker build -t skillbridge:latest .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:prod": "ENVIRONMENT=production docker-compose up -d",
+    "init:db": "python -c \"from backend import db; db.init_db(); from backend import auth; auth.ensure_demo_user()\"",
+    "test:api": "curl http://localhost:5173/api/health"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  }
 }

@@ -1,0 +1,173 @@
+# SkillBridge Agent - Nginx Reverse Proxy Configuration
+#
+# Installation:
+# 1. Copy this file to /etc/nginx/sites-available/skillbridge
+#    sudo cp skillbridge.nginx /etc/nginx/sites-available/skillbridge
+#
+# 2. Create SSL certificate (using Let's Encrypt):
+#    sudo certbot certonly --nginx -d yourdomain.com
+#
+# 3. Enable the site:
+#    sudo ln -s /etc/nginx/sites-available/skillbridge /etc/nginx/sites-enabled/
+#
+# 4. Test Nginx configuration:
+#    sudo nginx -t
+#
+# 5. Restart Nginx:
+#    sudo systemctl restart nginx
+#
+# 6. Monitor:
+#    sudo tail -f /var/log/nginx/access.log
+#    sudo tail -f /var/log/nginx/error.log
+
+# Upstream backend
+upstream skillbridge_backend {
+    least_conn;  # Use least connections load balancing
+    server 127.0.0.1:5173 max_fails=3 fail_timeout=30s;
+    keepalive 32;
+}
+
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name yourdomain.com www.yourdomain.com;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+}
+
+# Main HTTPS server
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+
+    # SSL Configuration
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/yourdomain.com/chain.pem;
+
+    # SSL Security Headers
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+
+    # Security Headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com; img-src 'self' data:; font-src 'self' fonts.googleapis.com;" always;
+
+    # Logging
+    access_log /var/log/nginx/skillbridge_access.log combined;
+    error_log /var/log/nginx/skillbridge_error.log warn;
+
+    # Gzip Compression
+    gzip on;
+    gzip_types text/plain text/css text/javascript application/json application/javascript;
+    gzip_min_length 1024;
+    gzip_vary on;
+    gzip_comp_level 6;
+
+    # Rate Limiting
+    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+    limit_req_zone $binary_remote_addr zone=general_limit:10m rate=30r/s;
+    
+    # Static files (cache aggressively)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    # API endpoints (rate limit)
+    location /api/ {
+        limit_req zone=api_limit burst=20 nodelay;
+        
+        proxy_pass http://skillbridge_backend;
+        proxy_http_version 1.1;
+        
+        # Headers
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization $http_authorization;
+        
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        # Buffering
+        proxy_buffering on;
+        proxy_buffer_size 4k;
+        proxy_buffers 8 4k;
+        
+        # Cache bypass
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Health check endpoint (no rate limit)
+    location /api/health {
+        proxy_pass http://skillbridge_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        
+        access_log off;
+    }
+
+    # All other requests
+    location / {
+        limit_req zone=general_limit burst=30 nodelay;
+        
+        proxy_pass http://skillbridge_backend;
+        proxy_http_version 1.1;
+        
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Deny access to sensitive files
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    location ~ /data/ {
+        deny all;
+        access_log off;
+    }
+
+    location ~ /logs/ {
+        deny all;
+        access_log off;
+    }
+}

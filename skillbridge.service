@@ -1,0 +1,63 @@
+# SkillBridge Agent - SystemD Service File
+# 
+# Installation:
+# 1. Copy this file to /etc/systemd/system/skillbridge.service
+#    sudo cp skillbridge.service /etc/systemd/system/
+#
+# 2. Update the paths and user below to match your environment
+#
+# 3. Reload systemd:
+#    sudo systemctl daemon-reload
+#
+# 4. Enable and start:
+#    sudo systemctl enable skillbridge
+#    sudo systemctl start skillbridge
+#
+# 5. Check status:
+#    sudo systemctl status skillbridge
+#    sudo journalctl -u skillbridge -f
+
+[Unit]
+Description=SkillBridge Agent - Career Counseling Platform
+Documentation=https://github.com/mrigeshkoyande/Agent-Infosys/blob/main/DEPLOYMENT.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=skillbridge
+Group=skillbridge
+WorkingDirectory=/opt/skillbridge
+EnvironmentFile=/opt/skillbridge/.env
+
+# Python environment
+Environment="PATH=/usr/bin:/usr/local/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Start command
+ExecStart=/usr/bin/python3 -m backend.server
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Process management
+Type=simple
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=skillbridge
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/skillbridge/data /opt/skillbridge/logs /opt/skillbridge/backups
+
+[Install]
+WantedBy=multi-user.target

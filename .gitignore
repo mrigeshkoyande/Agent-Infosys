@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 vendor/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
 
 # Build output
 dist/
@@ -18,6 +23,37 @@ data/
 .env.*
 !.env.example
 *.pem
+*.key
+*.crt
+*.cer
+
+# Logs and backups
+logs/
+*.log
+backups/
+*.backup
+*.bak
+
+# IDE and editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Runtime
+*.pid
+*.sock
+*.tmp
+temp/
+
 *.key
 *.p8
 *.p12

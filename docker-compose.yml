@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  skillbridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skillbridge-agent
+    ports:
+      - "${PORT:-5173}:5173"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+      HOST: 0.0.0.0
+      PORT: 5173
+      JWT_SECRET: ${JWT_SECRET:?Error: JWT_SECRET environment variable not set}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      SKILLBRIDGE_DB: /app/data/skillbridge.db
+      LOG_FILE: /app/logs/skillbridge.log
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SESSION_TIMEOUT_DAYS: ${SESSION_TIMEOUT_DAYS:-7}
+      ENABLE_DEMO_LOGIN: ${ENABLE_DEMO_LOGIN:-true}
+      ENABLE_USER_REGISTRATION: ${ENABLE_USER_REGISTRATION:-true}
+    volumes:
+      - skillbridge-data:/app/data
+      - skillbridge-logs:/app/logs
+      - skillbridge-backups:/app/backups
+      - .env:/app/.env:ro
+    restart: unless-stopped
+    networks:
+      - skillbridge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  skillbridge-data:
+    driver: local
+  skillbridge-logs:
+    driver: local
+  skillbridge-backups:
+    driver: local
+
+networks:
+  skillbridge-network:
+    driver: bridge

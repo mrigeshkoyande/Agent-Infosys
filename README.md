@@ -12,12 +12,57 @@ A lightweight, **zero-dependency** workforce counseling application that helps t
 ## 📋 Quick Links
 - [Quick Start (5 min)](#quick-start)
 - [Project Overview](#project-overview)
+- [Production Deployment](#-production-deployment-ready)
 - [Architecture](#architecture)
 - [File Structure](#file-structure)
 - [API Reference](#api-reference)
 - [Development Guide](#development-guide)
 - [Database Schema](#database-schema)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## 🚀 Production Deployment Ready
+
+SkillBridge Agent is **fully production-ready** with comprehensive deployment options:
+
+### Deployment Methods
+- **Docker Compose** (Recommended) - `docker-compose up -d`
+- **Linux SystemD** - Automatic service management
+- **Nginx Reverse Proxy** - Security headers, SSL/TLS, rate limiting
+- **Direct Python** - Simple single-server deployment
+
+### Production Features
+✅ **Environment Configuration** - Complete `.env` support  
+✅ **Logging** - Rotating file logs with JSON output  
+✅ **CORS & Security Headers** - Production-grade security  
+✅ **Database Backups** - Automated backup scheduling  
+✅ **Health Checks** - Built-in `/api/health` endpoint  
+✅ **Error Handling** - Comprehensive error logging  
+✅ **Rate Limiting** - DDoS protection via Nginx  
+✅ **SSL/TLS** - Let's Encrypt certificate support  
+
+### Quick Production Deployment
+```bash
+# Using Docker Compose (fastest)
+cp .env.example .env
+# Update .env with your configuration
+docker-compose up -d
+
+# Or using the production startup script
+bash scripts/start-production.sh
+
+# Verify deployment
+curl https://yourdomain.com/api/health
+```
+
+### 📚 Deployment Documentation
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Complete deployment guide (5 methods)
+- **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** - Pre/post deployment verification
+- **[docker-compose.yml](docker-compose.yml)** - Docker Compose configuration
+- **[Dockerfile](Dockerfile)** - Container image
+- **[skillbridge.service](skillbridge.service)** - SystemD service file
+- **[skillbridge.nginx](skillbridge.nginx)** - Nginx reverse proxy config
 
 ---
 
@@ -486,6 +531,8 @@ PORT=8080 python -m backend.server
 ## 📚 Additional Resources
 
 - [Agent Guidelines](AGENTS.md) - Development constraints and best practices
+- [Deployment Guide](DEPLOYMENT.md) - Production deployment instructions
+- [Deployment Checklist](DEPLOYMENT_CHECKLIST.md) - Pre/post deployment verification
 - [Python Documentation](https://docs.python.org/3/) - Python standard library
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework used
 - [Three.js](https://threejs.org/) - 3D graphics library

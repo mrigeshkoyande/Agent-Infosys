@@ -1,0 +1,5 @@
+# SkillBridge Agent - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# For .env file support (optional but recommended for production)
+python-dotenv>=0.21.0
