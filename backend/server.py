@@ -33,7 +33,7 @@ def add_security_headers(handler):
     handler.send_header("X-Frame-Options", "SAMEORIGIN")
     handler.send_header("X-XSS-Protection", "1; mode=block")
     handler.send_header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
-    handler.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com")
+    handler.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.tailwindcss.com ajax.googleapis.com; style-src 'self' 'unsafe-inline' cdn.tailwindcss.com fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:; connect-src 'self'")
 
 
 def json_response(handler, payload, status=200):
