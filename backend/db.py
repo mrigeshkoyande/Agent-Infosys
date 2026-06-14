@@ -6,7 +6,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
-DB_PATH = Path(os.environ.get("SKILLBRIDGE_DB", DATA_DIR / "skillbridge.db"))
+
+# Get database path from environment or use default
+db_env = os.environ.get("SKILLBRIDGE_DB", None)
+if db_env:
+    DB_PATH = Path(db_env)
+else:
+    DB_PATH = DATA_DIR / "skillbridge.db"
 
 
 def utc_now():

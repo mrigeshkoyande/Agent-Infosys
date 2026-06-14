@@ -6,12 +6,16 @@ Handles all environment variables and settings for deployment
 import logging
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Load .env file if it exists
-env_path = Path(__file__).resolve().parent.parent / ".env"
-if env_path.exists():
-    load_dotenv(env_path)
+# Try to load .env file if python-dotenv is available
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    # python-dotenv is optional, continue without it
+    pass
 
 # ======================
 # Environment & Mode
@@ -37,7 +41,11 @@ LOGS_DIR = ROOT / os.getenv("LOG_DIR", "logs")
 # ======================
 # Database Configuration
 # ======================
-SKILLBRIDGE_DB = Path(os.getenv("SKILLBRIDGE_DB", DATA_DIR / "skillbridge.db"))
+DB_ENV = os.getenv("SKILLBRIDGE_DB", None)
+if DB_ENV:
+    SKILLBRIDGE_DB = Path(DB_ENV)
+else:
+    SKILLBRIDGE_DB = DATA_DIR / "skillbridge.db"
 DATABASE_BACKUP_DIR = ROOT / os.getenv("DATABASE_BACKUP_DIR", "backups")
 DATABASE_TIMEOUT = int(os.getenv("DATABASE_TIMEOUT", "30"))
 
@@ -90,37 +98,45 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 # ======================
 def setup_logging():
     """Configure logging for the application"""
-    LOGS_DIR.mkdir(exist_ok=True)
-    
-    logger = logging.getLogger("skillbridge")
-    logger.setLevel(getattr(logging, LOG_LEVEL))
-    
-    # Console Handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(getattr(logging, LOG_LEVEL))
-    
-    # File Handler with rotation
     try:
-        from logging.handlers import RotatingFileHandler
-        file_handler = RotatingFileHandler(
-            LOG_FILE,
-            maxBytes=LOG_MAX_SIZE_MB * 1024 * 1024,
-            backupCount=LOG_BACKUP_COUNT
+        LOGS_DIR.mkdir(exist_ok=True)
+        
+        logger = logging.getLogger("skillbridge")
+        # Clear any existing handlers
+        logger.handlers = []
+        logger.setLevel(getattr(logging, LOG_LEVEL))
+        
+        # Console Handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(getattr(logging, LOG_LEVEL))
+        
+        # File Handler with rotation
+        try:
+            from logging.handlers import RotatingFileHandler
+            file_handler = RotatingFileHandler(
+                LOG_FILE,
+                maxBytes=LOG_MAX_SIZE_MB * 1024 * 1024,
+                backupCount=LOG_BACKUP_COUNT
+            )
+            file_handler.setLevel(getattr(logging, LOG_LEVEL))
+            logger.addHandler(file_handler)
+        except Exception as e:
+            print(f"Warning: Could not setup file logging: {e}")
+        
+        # Formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
         )
-        file_handler.setLevel(getattr(logging, LOG_LEVEL))
-        logger.addHandler(file_handler)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        
+        return logger
     except Exception as e:
-        print(f"Warning: Could not setup file logging: {e}")
-    
-    # Formatter
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-    
-    return logger
+        print(f"Warning: Could not setup logging: {e}")
+        # Fallback to basic logging
+        logging.basicConfig(level=logging.INFO)
+        return logging.getLogger("skillbridge")
 
 logger = setup_logging()
 

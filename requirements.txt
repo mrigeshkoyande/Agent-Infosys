@@ -1,5 +1,17 @@
 # SkillBridge Agent - Python Dependencies
-# Install with: pip install -r requirements.txt
+# 
+# Core dependencies: NONE (uses only Python stdlib)
+# 
+# Optional dependencies (install for convenience):
+# - python-dotenv>=0.21.0  # For loading .env files (optional)
+#
+# Installation:
+#   pip install -r requirements.txt
+#   or for optional packages:
+#   pip install python-dotenv
+#
+# Note: This project uses only Python standard library for core functionality.
+# python-dotenv is optional and will be gracefully skipped if not installed.
 
-# For .env file support (optional but recommended for production)
-python-dotenv>=0.21.0
+# Optional: Uncomment below to install python-dotenv
+# python-dotenv>=0.21.0

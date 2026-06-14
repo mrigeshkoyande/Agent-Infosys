@@ -9,11 +9,11 @@ services:
     ports:
       - "${PORT:-5173}:5173"
     environment:
-      ENVIRONMENT: ${ENVIRONMENT:-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
       DEBUG: ${DEBUG:-false}
       HOST: 0.0.0.0
       PORT: 5173
-      JWT_SECRET: ${JWT_SECRET:?Error: JWT_SECRET environment variable not set}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-in-production}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
       SKILLBRIDGE_DB: /app/data/skillbridge.db
       LOG_FILE: /app/logs/skillbridge.log
